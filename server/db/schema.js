@@ -64,3 +64,14 @@ export const kempoInventoryBarcodeSheetEntry = pgTable('kempoInventoryBarcodeShe
   index('kempoInventoryBarcodeSheetEntryItemIdx').on(table.itemId),
   uniqueIndex('kempoInventoryBarcodeSheetEntryCodeIdx').on(table.sheetId, table.barcodeId),
 ]);
+
+/*
+  A label format set for a category (scope 'category', key the category's key) or for one item (scope 'item', key its
+  id). An empty format is never stored: clearing one deletes the row, so the level above applies again.
+*/
+export const kempoInventoryBarcodeFormat = pgTable('kempoInventoryBarcodeFormat', {
+  scope: text('scope').notNull(),
+  key: text('key').notNull(),
+  format: text('format').notNull(),
+  updated: timestamp('updated').notNull(),
+}, table => [uniqueIndex('kempoInventoryBarcodeFormatIdx').on(table.scope, table.key)]);

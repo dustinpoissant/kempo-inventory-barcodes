@@ -2,12 +2,12 @@ import crypto from 'node:crypto';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import db from 'kempo/server/db/index.js';
 import { getUserById } from 'kempo/server/sdk.js';
-import { getItem, getItems, getFields } from 'kempo-inventory/sdk';
+import { getItem, getItems } from 'kempo-inventory/sdk';
 import { kempoInventoryBarcode, kempoInventoryBarcodeSheet, kempoInventoryBarcodeSheetEntry } from '../db/schema.js';
 import { getCodesForItems, ensurePrimary } from './barcodes.js';
 import { getConfig } from './config.js';
 import { layoutSheet, gridOf } from './layout.js';
-import { labelTextOf } from './labelText.js';
+import { labelFor, formatContext } from './formats.js';
 
 /*
   Print sheets. A sheet belongs to the person who made it: everyone else gets a 404 for it, unless they hold
@@ -144,8 +144,8 @@ export const getSheet = async (id, { userId, manage }) => {
     const [codesError, codes] = await getCodesForItems(itemIds);
     if(codesError) return [codesError, null];
     const config = await getConfig();
-    const [fieldsError, fields] = await getFields();
-    if(fieldsError) return [fieldsError, null];
+    const [contextError, context] = await formatContext();
+    if(contextError) return [contextError, null];
     const entries = rows.map(row => {
       const item = items.get(row.itemId);
       const itemCodes = codes[row.itemId] ?? [];
@@ -154,7 +154,7 @@ export const getSheet = async (id, { userId, manage }) => {
         id: row.id,
         itemId: row.itemId,
         itemName: item?.name ?? 'Deleted item',
-        labelText: item ? labelTextOf(config.labelTemplate, item, fields) : '',
+        labelText: item ? labelFor(item, context.fields, context.stored, context.siteFormat).text : '',
         sku: item?.sku ?? '',
         barcodeId: row.barcodeId,
         code: code?.code ?? '',

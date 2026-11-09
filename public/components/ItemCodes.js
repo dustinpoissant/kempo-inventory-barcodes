@@ -7,6 +7,7 @@ import '/kempo-ui/components/Spinner.js';
 import { getItem } from '/inventory/sdk.js';
 import { getAllCurrentUserPermissions } from '/kempo/sdk.js';
 import { scanBarcode } from '/inventory/components/BarcodeScanner.js';
+import { setItemFormat, previewFormat } from '/inventory-barcodes/sdk.js';
 import { getCodes, addCode, generateCode, setPrimary, removeCode, mergeItems, listSheets, createSheet, addEntry, sheetUrl } from '/inventory-barcodes/sdk.js';
 
 const KINDS = { upc: 'Product code', internal: 'Made up for this item', other: 'Other code' };
@@ -42,6 +43,9 @@ export default class ItemCodes extends ShadowComponent {
     showName: { type: Boolean, attribute: 'show-name' },
     item: { state: true },
     codes: { state: true },
+    label: { state: true },
+    formatDraft: { state: true },
+    preview: { state: true },
     permissions: { state: true },
     sheets: { state: true },
     error: { state: true },
@@ -89,6 +93,8 @@ export default class ItemCodes extends ShadowComponent {
     }
     this.item = itemData.item;
     this.codes = codesData.codes;
+    this.label = codesData.label;
+    this.formatDraft = this.label?.source === 'item' ? this.label.format : '';
     this.permissions = new Set(permissionData?.permissions ?? []);
     this.sheets = sheetData?.sheets ?? null;
     const last = remembered();
@@ -98,7 +104,11 @@ export default class ItemCodes extends ShadowComponent {
   loadCodes = async () => {
     const [error, data] = await getCodes(this.item.id);
     if(error) Toast.error(error.msg);
-    else this.codes = data.codes;
+    else {
+      this.codes = data.codes;
+      this.label = data.label;
+      this.formatDraft = this.label?.source === 'item' ? this.label.format : '';
+    }
   };
 
   get canEdit(){
@@ -267,11 +277,48 @@ export default class ItemCodes extends ShadowComponent {
       </div>`;
   }
 
+  saveFormat = async () => {
+    const [error] = await setItemFormat(this.item.id, this.formatDraft.trim());
+    if(error){
+      Toast.error(error.msg);
+      return;
+    }
+    Toast.success(this.formatDraft.trim() ? 'Label format saved for this item' : "This item uses its category's format again");
+    await this.loadCodes();
+  };
+
+  showPreview = async () => {
+    const [error, data] = await previewFormat(this.formatDraft, this.item.id);
+    this.preview = error ? { error: error.msg } : data;
+  };
+
+  renderLabel(){
+    const label = this.label;
+    if(!label) return '';
+    const inherited = label.source === 'category' ? 'the category format' : 'the site default';
+    const origin = label.source === 'item' ? 'this item format' : inherited;
+    const placeholder = label.format;
+    return html`<h4>Label</h4>
+      <p class="mb"><strong id="labelText">${label.text || '(no text)'}</strong><br><small class="tc-muted">Printed above the barcode, from ${origin}.</small></p>
+      ${this.canEdit ? html`
+        <label class="d-b mbq" for="itemFormat">Format for this item
+          <small class="d-b tc-muted">Placeholders: {name}, {sku}, {category}, {attribute:brand}. Use {attribute:brand|"text"} to fall back to text when it is empty. Leave empty to use ${inherited}.</small>
+        </label>
+        <div class="d-f mb">
+          <input id="itemFormat" type="text" class="flex m0 mr" maxlength="200" placeholder=${placeholder} .value=${this.formatDraft}
+            @input=${event => { this.formatDraft = event.target.value; }}>
+          <button class="m0 mr" @click=${this.showPreview}>Preview</button>
+          <button class="primary m0" @click=${this.saveFormat}>Save format</button>
+        </div>
+        ${this.preview ? html`<p class="tc-muted">${this.preview.error ? this.preview.error : html`Would print: <strong>${this.preview.text || '(no text)'}</strong>`}</p>` : ''}` : ''}`;
+  }
+
   render(){
     if(this.error) return html`<p class="tc-danger">${this.error}</p>`;
     if(!this.item) return html`<k-spinner></k-spinner>`;
     return html`
       ${this.showName ? html`<h2 class="mb0">${this.item.name}</h2><p class="tc-muted">${this.item.sku}</p>` : ''}
+      ${this.renderLabel()}
       <h4>Barcodes</h4>
       ${this.codes.length
         ? this.codes.map(code => this.renderCode(code))

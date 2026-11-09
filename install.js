@@ -15,6 +15,7 @@ const INDEXES = [
   sql`CREATE INDEX IF NOT EXISTS "kempoInventoryBarcodeSheetUserIdx" ON "kempoInventoryBarcodeSheet" ("userId")`,
   sql`CREATE INDEX IF NOT EXISTS "kempoInventoryBarcodeSheetEntrySheetIdx" ON "kempoInventoryBarcodeSheetEntry" ("sheetId")`,
   sql`CREATE INDEX IF NOT EXISTS "kempoInventoryBarcodeSheetEntryItemIdx" ON "kempoInventoryBarcodeSheetEntry" ("itemId")`,
+  sql`CREATE UNIQUE INDEX IF NOT EXISTS "kempoInventoryBarcodeFormatIdx" ON "kempoInventoryBarcodeFormat" ("scope", "key")`,
   sql`CREATE UNIQUE INDEX IF NOT EXISTS "kempoInventoryBarcodeSheetEntryCodeIdx" ON "kempoInventoryBarcodeSheetEntry" ("sheetId", "barcodeId")`,
 ];
 

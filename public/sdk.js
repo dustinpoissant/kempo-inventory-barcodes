@@ -51,3 +51,12 @@ export const removeEntry = (sheetId, entryId) => request('DELETE', `${BASE}/shee
 export const printUrl = id => `/inventory-barcodes/print/${enc(id)}`;
 export const sheetUrl = id => `/inventory-barcodes/sheet?id=${enc(id)}`;
 export const itemUrl = id => `/inventory-barcodes/item?id=${enc(id)}`;
+
+/*
+  Label formats: the site's default, every category with its own format, and the format of one item. An empty format
+  clears one, so the level above applies again. `previewFormat` answers the text a format would print for an item.
+*/
+export const getFormats = () => request('GET', `${BASE}/formats`);
+export const setCategoryFormat = (key, format) => request('PUT', `${BASE}/formats/category/${enc(key)}`, { format });
+export const setItemFormat = (id, format) => request('PUT', `${BASE}/formats/item/${enc(id)}`, { format });
+export const previewFormat = (format, itemId) => request('POST', `${BASE}/formats/preview`, { format, itemId });

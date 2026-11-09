@@ -3,7 +3,9 @@
   "git": "https://github.com/dustinpoissant/kempo-inventory-barcodes",
   "public-scope": "inventory-barcodes",
   "schema": "./server/db/schema.js",
-  "dependencies": ["kempo-inventory"],
+  "dependencies": [
+    "kempo-inventory"
+  ],
   "hooks": {
     "kempo-inventory:item:deleted": "./hooks/item-deleted.js",
     "user:deleted": "./hooks/user-deleted.js"
@@ -69,9 +71,9 @@
     },
     {
       "name": "label_format",
-      "value": "{attribute:brand} - {attribute:finish} - {name}",
+      "value": "{name}",
       "type": "string",
-      "description": "The text above each barcode, built from the item. {attribute:Label} is an attribute by its label (lower case, spaces as dashes): {attribute:brand}, {attribute:finish}, {attribute:type}, {attribute:manufacturer-code}. Also {name}, {sku} and {category}. An attribute the item does not have is left out with its dash, so one format serves every item."
+      "description": "The label text for every item, unless its category or the item has its own (set on Admin > Barcodes). Placeholders: {name}, {sku}, {category}, {attribute:Label} for an attribute (its field label in lower case, spaces as dashes), and {a|b|\"text\"} to fall back to the next when one is empty."
     },
     {
       "name": "label_text_size",

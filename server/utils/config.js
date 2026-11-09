@@ -25,7 +25,7 @@ export const getConfig = async () => {
     labelHeight: asNumber(await read('label_height', 1), 1, 0.4),
     labelGap: asNumber(await read('label_gap', 0), 0),
     labelText: asBoolean(await read('label_text', true)),
-    labelTemplate: String(await read('label_format', '{attribute:brand} - {attribute:finish} - {name}')).slice(0, 200),
+    labelFormat: String(await read('label_format', '{name}')).slice(0, 200),
     labelTextSize: asNumber(await read('label_text_size', 9), 9, 4),
     cutGuides: asBoolean(await read('label_cut_guides', true)),
     internalPrefix: cleanPrefix(await read('internal_prefix', 'INV')),

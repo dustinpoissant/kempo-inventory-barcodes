@@ -50,32 +50,23 @@ An item with no code is given one the first time it goes on a sheet: its SKU whe
 
 The print page is the one place this extension writes CSS: the paper and label sizes are settings, so they cannot be utility classes. It is a standalone page that needs nothing from the site.
 
-## Settings
+## Label format
 
-Label text is built from a format. Placeholders:
+The text above each barcode comes from a format, chosen at three levels, most specific first:
 
-- `{attribute:Label}`: one of the item's attributes, named by its field's label in lower case with spaces as dashes. `{attribute:brand}`, `{attribute:finish}`, `{attribute:manufacturer-code}`. A clear coat's "Brand" is `{attribute:brand}` too, whatever its field key.
+1. **The item's own format**, in its Barcodes tab (on the admin item page, or the item's page on the site).
+2. **Its category's format**, in the Barcodes tab of **Admin > Inventory**.
+3. **The site default**, the `label_format` setting (Admin > Barcodes > Settings). It is `{name}` until you change it.
+
+Placeholders:
+
 - `{name}`, `{sku}`, `{category}`: the item's own.
+- `{attribute:Label}`: one of the item's attributes, named by its field's label in lower case with spaces as dashes: `{attribute:brand}`, `{attribute:finish}`, `{attribute:manufacturer-code}`. A clear coat's "Brand" is `{attribute:brand}` too, whatever its field key.
+- Fallbacks: list alternatives separated by `|`, and the first one with something to show is used. `{attribute:finish|"No finish"}` prints the finish, or the words "No finish". `{attribute:brand|name}` prints the brand, or the name.
 
-An attribute the item does not have leaves its placeholder out together with the dash beside it, so one format serves every item: "Apple Barrel - Matte - Admiral Blue", or "Admiral Blue" when there is no brand. Photos and colours are never printed.
+When an attribute is missing and nothing follows it, its placeholder is left out together with the dash beside it, so one format works for every item. Photos and colours are never printed. A format can be at most 200 characters, and a bad one (an unknown placeholder, an unpaired brace) is refused with the reason.
 
-A format of just `{name}` gives the item's name as before. The format is also shown on each line of a print sheet.
-
-**Admin > Barcodes > Settings** (sizes are inches). The defaults print 30 labels of 2.5" x 1" on US Letter, 3 across and 10 down.
-
-| Setting | Default | |
-|---|---|---|
-| `sheet_width`, `sheet_height` | 8.5, 11 | The paper |
-| `sheet_margin` | 0.5 | Blank space around the edge |
-| `label_width`, `label_height` | 2.5, 1 | One label |
-| `label_gap` | 0 | Space between labels. Leave at 0 to cut along shared lines |
-| `label_text` | on | Whether new sheet lines print text above the barcode. Each line can still turn it on or off |
-| `label_format` | `{attribute:brand} - {attribute:finish} - {name}` | The text above the barcode, built from the item (see below) |
-| `label_text_size` | 9 | Size of the name, in points |
-| `label_cut_guides` | on | A thin outline around each label |
-| `internal_prefix` | `INV` | Start of made-up codes. Capital letters and numbers |
-
-A bad value falls back to its default, so a mistyped setting cannot break printing. If a label is bigger than the printable part of the paper, the sheet says so instead of printing.
+The Barcodes tab of **Admin > Inventory** previews each category's format on one of its items as you type.
 
 ## Permissions and groups
 
