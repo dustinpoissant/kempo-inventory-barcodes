@@ -1,0 +1,36 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  # An in-memory Postgres (PGlite), so there is no service to start and a database suite cannot
+  # skip for want of one.
+  unit:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - run: npm ci
+
+      # kempo, kempo-ui, kempo-server and kempo-inventory are peer dependencies, which npm ci does not
+      # install. legacy-peer-deps (set repo-wide in .npmrc) makes a bare `npm install <peer-name>`
+      # silently no-op, so --no-legacy-peer-deps forces a real install, and --force gets past the
+      # ERESOLVE that several peer paths to kempo-server cause.
+      - name: Install the host for the test gate
+        run: npm install --no-save --no-legacy-peer-deps --force kempo@latest kempo-ui@latest kempo-server@latest kempo-inventory@latest
+
+      - name: Run unit tests
+        run: npm test

@@ -1,0 +1,27 @@
+<!--
+locked: true
+-->
+<page title="Barcodes - Admin">
+<content>
+  <script type="module" src="/kempo-ui/components/Tabs.js"></script>
+  <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <script type="module" src="/inventory-barcodes/components/Sheets.js"></script>
+  <script type="module" src="/inventory-barcodes/components/AdoptSkus.js"></script>
+
+  <h1 class="mb">Barcodes</h1>
+
+  <k-tabs active="sheets" hash-routing>
+    <k-tab for="sheets">Print sheets</k-tab>
+    <k-tab for="existing">Existing barcodes</k-tab>
+
+    <k-tab-content name="sheets" class="pt">
+      <p class="tc-muted">Everyone's print sheets. People make their own on the site (<a href="/inventory-barcodes/">/inventory-barcodes/</a>); you can open, print or delete any of them here. The label and paper sizes are on the Barcodes tab of <a href="/admin/settings">Settings</a>.</p>
+      <k-inventory-barcodes-sheets all></k-inventory-barcodes-sheets>
+    </k-tab-content>
+
+    <k-tab-content name="existing" class="pt">
+      <k-inventory-barcodes-adopt-skus></k-inventory-barcodes-adopt-skus>
+    </k-tab-content>
+  </k-tabs>
+</content>
+</page>

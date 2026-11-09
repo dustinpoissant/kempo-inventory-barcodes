@@ -1,0 +1,89 @@
+{
+  "docs": "https://github.com/dustinpoissant/kempo-inventory-barcodes#readme",
+  "git": "https://github.com/dustinpoissant/kempo-inventory-barcodes",
+  "public-scope": "inventory-barcodes",
+  "schema": "./server/db/schema.js",
+  "dependencies": ["kempo-inventory"],
+  "hooks": {
+    "kempo-inventory:item:deleted": "./hooks/item-deleted.js",
+    "user:deleted": "./hooks/user-deleted.js"
+  },
+  "permissions": [
+    {
+      "name": "kempo-inventory-barcodes:manage",
+      "description": "Change the label and sheet sizes, see and delete everyone's print sheets, and adopt existing SKUs as barcodes"
+    }
+  ],
+  "groups": [
+    {
+      "name": "kempo-inventory-barcodes:admin",
+      "description": "Can set up barcode labels and manage everyone's print sheets",
+      "permissions": [
+        "system:admin:access",
+        "kempo-inventory-barcodes:manage"
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "name": "sheet_width",
+      "value": 8.5,
+      "type": "number",
+      "description": "Paper width in inches. US Letter is 8.5, A4 is 8.27."
+    },
+    {
+      "name": "sheet_height",
+      "value": 11,
+      "type": "number",
+      "description": "Paper height in inches. US Letter is 11, A4 is 11.69."
+    },
+    {
+      "name": "sheet_margin",
+      "value": 0.5,
+      "type": "number",
+      "description": "Blank space around the edge of the paper, in inches. Most printers cannot print closer than 0.25 to the edge."
+    },
+    {
+      "name": "label_width",
+      "value": 2.5,
+      "type": "number",
+      "description": "Width of one label in inches. As many labels as fit across the paper are printed on each row."
+    },
+    {
+      "name": "label_height",
+      "value": 1,
+      "type": "number",
+      "description": "Height of one label in inches. As many rows as fit down the paper are printed."
+    },
+    {
+      "name": "label_gap",
+      "value": 0,
+      "type": "number",
+      "description": "Space between labels in inches. Leave at 0 to cut along shared lines; use a little more if you cut each label out separately."
+    },
+    {
+      "name": "label_text",
+      "value": true,
+      "type": "boolean",
+      "description": "Print the item's name above the barcode on new print sheet entries. Each entry can still turn it on or off."
+    },
+    {
+      "name": "label_text_size",
+      "value": 9,
+      "type": "number",
+      "description": "Size of the item name on a label, in points."
+    },
+    {
+      "name": "label_cut_guides",
+      "value": true,
+      "type": "boolean",
+      "description": "Draw a thin outline around every label so it is easy to cut out."
+    },
+    {
+      "name": "internal_prefix",
+      "value": "INV",
+      "type": "string",
+      "description": "Start of the codes made up for items that have no barcode, such as INV-000123. Capital letters and numbers only."
+    }
+  ]
+}

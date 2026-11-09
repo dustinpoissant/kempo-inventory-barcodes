@@ -1,0 +1,48 @@
+{
+  "name": "kempo-inventory-barcodes",
+  "version": "0.1.0",
+  "description": "Barcodes for kempo-inventory: several codes per item with one primary, temporary codes you can later merge with the real one, and print sheets of labels",
+  "license": "MIT",
+  "author": "Dustin Poissant <dustinpoissant@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dustinpoissant/kempo-inventory-barcodes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dustinpoissant/kempo-inventory-barcodes/issues"
+  },
+  "homepage": "https://github.com/dustinpoissant/kempo-inventory-barcodes#readme",
+  "type": "module",
+  "main": "sdk.js",
+  "scripts": {
+    "test": "node scripts/run-tests.js unit node --test --test-concurrency=1",
+    "link:local": "npm install ../kempo ../kempo-server ../kempo-ui ../kempo-inventory --no-save --no-legacy-peer-deps --force"
+  },
+  "exports": {
+    "./install": "./install.js",
+    "./update": "./update.js",
+    "./sdk": "./sdk.js"
+  },
+  "files": [
+    "admin",
+    "public",
+    "server",
+    "hooks",
+    "install.js",
+    "update.js",
+    "sdk.js",
+    "kempo-config.json"
+  ],
+  "dependencies": {
+    "bwip-js": "^4.11.4",
+    "drizzle-orm": "^0.45.4"
+  },
+  "peerDependencies": {
+    "kempo": ">=4.11.0",
+    "kempo-inventory": ">=0.5.0",
+    "kempo-ui": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16"
+  }
+}
