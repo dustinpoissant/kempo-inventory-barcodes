@@ -4,6 +4,11 @@ All notable changes to `kempo-inventory-barcodes` are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Label text is a format.** The setting `label_format` (default `{attribute:brand} - {attribute:finish} - {name}`) builds the text above each barcode from the item's attributes, by their labels: `{attribute:brand}`, `{attribute:finish}`, `{attribute:manufacturer-code}`, plus `{name}`, `{sku}` and `{category}`. An attribute the item does not have is left out with its dash. The former `label_template` name is not used in a release.
+- **The Barcodes settings are a Settings tab** on the extension's admin page (Admin > Barcodes > Settings), no longer a tab on the Settings screen.
+
 ## [0.1.0] - 2026-11-09
 
 First release. Requires kempo 4.11.0 and kempo-inventory 0.5.0 or later.

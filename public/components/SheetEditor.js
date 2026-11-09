@@ -141,6 +141,7 @@ export default class SheetEditor extends ShadowComponent {
     return html`<div class="b r p mb d-f" style="align-items: center;">
       <div class="flex mr">
         <strong>${entry.itemName}</strong>
+        ${entry.missing ? '' : html`<small class="d-b tc-muted">Label: ${entry.labelText || '(no text)'}</small>`}
         <small class="d-b tc-muted">${entry.sku}</small>
         ${entry.missing
           ? html`<small class="d-b tc-danger">The item or code was deleted. This line is left out of the print.</small>`

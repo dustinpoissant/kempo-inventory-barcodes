@@ -65,7 +65,13 @@
       "name": "label_text",
       "value": true,
       "type": "boolean",
-      "description": "Print the item's name above the barcode on new print sheet entries. Each entry can still turn it on or off."
+      "description": "Print text above the barcode on new print sheet entries. Each entry can still turn it on or off."
+    },
+    {
+      "name": "label_format",
+      "value": "{attribute:brand} - {attribute:finish} - {name}",
+      "type": "string",
+      "description": "The text above each barcode, built from the item. {attribute:Label} is an attribute by its label (lower case, spaces as dashes): {attribute:brand}, {attribute:finish}, {attribute:type}, {attribute:manufacturer-code}. Also {name}, {sku} and {category}. An attribute the item does not have is left out with its dash, so one format serves every item."
     },
     {
       "name": "label_text_size",

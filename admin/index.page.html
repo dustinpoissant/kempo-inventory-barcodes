@@ -5,6 +5,7 @@ locked: true
 <content>
   <script type="module" src="/kempo-ui/components/Tabs.js"></script>
   <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <script type="module" src="/admin/components/settings/SettingsPanel.js"></script>
   <script type="module" src="/inventory-barcodes/components/Sheets.js"></script>
   <script type="module" src="/inventory-barcodes/components/AdoptSkus.js"></script>
 
@@ -13,14 +14,20 @@ locked: true
   <k-tabs active="sheets" hash-routing>
     <k-tab for="sheets">Print sheets</k-tab>
     <k-tab for="existing">Existing barcodes</k-tab>
+    <k-tab for="settings">Settings</k-tab>
 
     <k-tab-content name="sheets" class="pt">
-      <p class="tc-muted">Everyone's print sheets. People make their own on the site (<a href="/inventory-barcodes/">/inventory-barcodes/</a>); you can open, print or delete any of them here. The label and paper sizes are on the Barcodes tab of <a href="/admin/settings">Settings</a>.</p>
+      <p class="tc-muted">Everyone's print sheets. People make their own on the site (<a href="/inventory-barcodes/">/inventory-barcodes/</a>); you can open, print or delete any of them here.</p>
       <k-inventory-barcodes-sheets all></k-inventory-barcodes-sheets>
     </k-tab-content>
 
     <k-tab-content name="existing" class="pt">
       <k-inventory-barcodes-adopt-skus></k-inventory-barcodes-adopt-skus>
+    </k-tab-content>
+
+    <k-tab-content name="settings" class="pt">
+      <p class="tc-muted mb">The size of the paper and of each label, in inches, and the text printed above each barcode. Every print sheet is laid out with these, so a change applies the next time a sheet is printed.</p>
+      <k-settings-panel owner="kempo-inventory-barcodes"></k-settings-panel>
     </k-tab-content>
   </k-tabs>
 </content>

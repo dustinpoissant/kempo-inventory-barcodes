@@ -52,7 +52,16 @@ The print page is the one place this extension writes CSS: the paper and label s
 
 ## Settings
 
-**Admin > Settings > Barcodes** (sizes are inches). The defaults print 30 labels of 2.5" x 1" on US Letter, 3 across and 10 down.
+Label text is built from a format. Placeholders:
+
+- `{attribute:Label}`: one of the item's attributes, named by its field's label in lower case with spaces as dashes. `{attribute:brand}`, `{attribute:finish}`, `{attribute:manufacturer-code}`. A clear coat's "Brand" is `{attribute:brand}` too, whatever its field key.
+- `{name}`, `{sku}`, `{category}`: the item's own.
+
+An attribute the item does not have leaves its placeholder out together with the dash beside it, so one format serves every item: "Apple Barrel - Matte - Admiral Blue", or "Admiral Blue" when there is no brand. Photos and colours are never printed.
+
+A format of just `{name}` gives the item's name as before. The format is also shown on each line of a print sheet.
+
+**Admin > Barcodes > Settings** (sizes are inches). The defaults print 30 labels of 2.5" x 1" on US Letter, 3 across and 10 down.
 
 | Setting | Default | |
 |---|---|---|
@@ -60,7 +69,8 @@ The print page is the one place this extension writes CSS: the paper and label s
 | `sheet_margin` | 0.5 | Blank space around the edge |
 | `label_width`, `label_height` | 2.5, 1 | One label |
 | `label_gap` | 0 | Space between labels. Leave at 0 to cut along shared lines |
-| `label_text` | on | Whether new sheet lines print the item's name above the barcode. Each line can still turn it on or off |
+| `label_text` | on | Whether new sheet lines print text above the barcode. Each line can still turn it on or off |
+| `label_format` | `{attribute:brand} - {attribute:finish} - {name}` | The text above the barcode, built from the item (see below) |
 | `label_text_size` | 9 | Size of the name, in points |
 | `label_cut_guides` | on | A thin outline around each label |
 | `internal_prefix` | `INV` | Start of made-up codes. Capital letters and numbers |
