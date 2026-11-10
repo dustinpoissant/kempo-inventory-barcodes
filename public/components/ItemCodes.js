@@ -10,7 +10,7 @@ import { scanBarcode } from '/inventory/components/BarcodeScanner.js';
 import { setItemFormat, previewFormat } from '/inventory-barcodes/sdk.js';
 import { getCodes, addCode, generateCode, setPrimary, removeCode, mergeItems, listSheets, createSheet, addEntry, sheetUrl } from '/inventory-barcodes/sdk.js';
 
-const KINDS = { upc: 'Product code', internal: 'Made up for this item', other: 'Other code' };
+const KINDS = { upc: 'Product code', internal: 'Made up for this item', other: 'Scanned code' };
 
 const REMEMBER = 'inventory-barcodes:last-sheet';
 

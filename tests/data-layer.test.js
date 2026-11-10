@@ -60,10 +60,23 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
     assert.equal(ok(await ensurePrimary(item.id)).id, primary.id);
   });
 
-  test('an item with a part number as its SKU gets a made-up code, numbered in order', async () => {
+  test("an item's SKU is its primary barcode, whatever it is", async () => {
     await purge();
     const first = ok(await createItem({ sku: 'FIL-1', name: 'Desert Sand PLA' }));
-    const second = ok(await createItem({ sku: 'FIL-2', name: 'Medium Gray PLA' }));
+    const code = ok(await ensurePrimary(first.id));
+    assert.equal(code.code, 'FIL-1');
+    assert.equal(code.kind, 'other');
+    assert.equal(code.isPrimary, true);
+  });
+
+  test("a made-up code is only made when the SKU is another item's code, numbered in order", async () => {
+    await purge();
+    const holderA = ok(await createItem({ sku: 'HOLD-A', name: 'Holder A' }));
+    const holderB = ok(await createItem({ sku: 'HOLD-B', name: 'Holder B' }));
+    ok(await addCode({ itemId: holderA.id, code: 'X1' }));
+    ok(await addCode({ itemId: holderB.id, code: 'X2' }));
+    const first = ok(await createItem({ sku: 'X1', name: 'Clash one' }));
+    const second = ok(await createItem({ sku: 'X2', name: 'Clash two' }));
     assert.equal(ok(await ensurePrimary(first.id)).code, 'INV-000001');
     assert.equal(ok(await ensurePrimary(second.id)).code, 'INV-000002');
     const again = ok(await makeInternalCode(first.id));
@@ -134,14 +147,14 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
     refused(await findByCode(''), 400);
   });
 
-  test('adopting SKUs gives product-code SKUs a barcode and leaves part numbers alone, and can be repeated', async () => {
+  test('adopting SKUs gives every SKU a barcode, and can be repeated', async () => {
     await purge();
     await createItem({ sku: '036000291452', name: 'Has a UPC' });
     await createItem({ sku: 'CAR-1', name: 'Part number' });
     const first = ok(await adoptSkus());
-    assert.deepEqual([first.checked, first.added, first.already, first.conflicts.length], [2, 1, 0, 0]);
+    assert.deepEqual([first.checked, first.added, first.already, first.conflicts.length], [2, 2, 0, 0]);
     const second = ok(await adoptSkus());
-    assert.deepEqual([second.added, second.already], [0, 1]);
+    assert.deepEqual([second.added, second.already], [0, 2]);
   });
 
   test('adopting SKUs reports an item whose code another item holds, and which one', async () => {
@@ -195,7 +208,7 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
       ok(await addEntry(sheet.id, { ...ME, itemId: sand.id, quantity: 5, showText: false }));
       const data = ok(await getSheet(sheet.id, ME));
       assert.deepEqual(data.entries.map(entry => [entry.itemName, entry.code, entry.quantity, entry.showText]), [
-        ['Overture Medium Gray', 'INV-000001', 3, true],
+        ['Overture Medium Gray', 'FIL-1', 3, true],
         ['Desert Sand', '036000291452', 5, false],
       ]);
       assert.deepEqual(data.summary, { labels: 8, pages: 1, perPage: 30, columns: 3, rows: 10 });
@@ -313,7 +326,7 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
       assert.equal(ok(await getItem(real.id)).quantity, 5);
 
       const codes = ok(await getCodes(real.id));
-      assert.deepEqual(codes.map(code => code.code).sort(), ['4006381333931', 'FIL-TEMP', tempCode.code].sort());
+      assert.deepEqual(codes.map(code => code.code).sort(), [realCode.code, tempCode.code].sort());
       assert.deepEqual(codes.filter(code => code.isPrimary).map(code => code.id), [realCode.id]);
       assert.equal(ok(await findByCode(tempCode.code)).item.id, real.id);
       assert.equal(ok(await findByCode('FIL-TEMP')).item.id, real.id);
@@ -333,7 +346,7 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
       assert.equal(codes.find(own => own.isPrimary).code, code.code);
     });
 
-    test('two made-up codes can both stay: the moved one stops being "internal"', async () => {
+    test('two items with their own SKUs as barcodes: merging keeps both codes, once each', async () => {
       await purge();
       const a = ok(await createItem({ sku: 'A', name: 'A' }));
       const b = ok(await createItem({ sku: 'B', name: 'B' }));
@@ -341,8 +354,7 @@ describe('barcodes', { skip: reachable ? false : 'no throwaway database (set DAT
       ok(await ensurePrimary(b.id));
       ok(await mergeItems({ fromId: b.id, intoId: a.id }));
       const codes = ok(await getCodes(a.id));
-      assert.equal(codes.length, 3);
-      assert.equal(codes.filter(code => code.kind === 'internal').length, 1);
+      assert.deepEqual(codes.map(code => [code.code, code.kind]).sort(), [['A', 'other'], ['B', 'other']]);
     });
 
     test('merging an item with itself, or with a missing one, is refused', async () => {

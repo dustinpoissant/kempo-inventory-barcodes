@@ -122,7 +122,12 @@ export const addCode = async ({ itemId, code: raw, makePrimary = false, force = 
     const row = await insertCode({ itemId, code, kind: kindOf(code), primary: makePrimary || !owned.some(own => own.isPrimary) });
     return [null, { barcode: shapeCode(row), existing: false }];
   } catch(error) {
-    if(isUniqueViolation(error)) return [{ code: 409, msg: 'Another item already has this barcode' }, null];
+    if(isUniqueViolation(error)){
+      /* Two adds of the same code at once: the one that lost the race finds the code its own item now has. */
+      const [same] = await db.select().from(kempoInventoryBarcode).where(eq(kempoInventoryBarcode.lookup, lookupKey(code)));
+      if(same?.itemId === itemId) return [null, { barcode: shapeCode(same), existing: true }];
+      return [{ code: 409, msg: 'Another item already has this barcode', conflictItemId: same?.itemId ?? '' }, null];
+    }
     return failed('Failed to add the barcode');
   }
 };
@@ -173,8 +178,9 @@ export const ensurePrimary = async itemId => {
   }
   const [itemError, item] = await getItem(itemId);
   if(itemError) return [itemError, null];
-  if(isGtin(cleanCode(item.sku))){
-    const [addError, added] = await addCode({ itemId, code: item.sku, makePrimary: true });
+  const sku = cleanCode(item.sku);
+  if(sku){
+    const [addError, added] = await addCode({ itemId, code: sku, makePrimary: true, force: true });
     if(!addError) return [null, added.barcode];
   }
   const [mintError, minted] = await makeInternalCode(itemId);
@@ -258,7 +264,7 @@ export const adoptSkus = async () => {
     for(const item of data.items){
       summary.checked++;
       const sku = cleanCode(item.sku);
-      if(!isGtin(sku)) continue;
+      if(!sku) continue;
       const [addError, added] = await addCode({ itemId: item.id, code: sku });
       if(addError){
         const [, other] = addError.conflictItemId ? await getItem(addError.conflictItemId) : [null, null];

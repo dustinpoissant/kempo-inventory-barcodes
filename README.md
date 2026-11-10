@@ -22,7 +22,9 @@ A code belongs to **one item**, and an item has **any number** of codes. Exactly
 |---|---|
 | Product code | A UPC-A, UPC-E, EAN-8, EAN-13 or GTIN-14 whose check digit is right. Printed as itself (a UPC-A, UPC-E, EAN-8 or EAN-13 symbol; a GTIN-14 as Code 128): a UPC prints as a UPC |
 | Made up for this item | The code this extension makes for an item that has none: `PREFIX-000123`, numbered from one counter so two people asking at once never get the same number. An item has at most one. Printed as Code 128 |
-| Other code | Anything else that was scanned or typed (a QR text, a serial). Printed as Code 128 |
+| Scanned code | Any other code: an item's SKU that is not a UPC/EAN, a QR text, a serial such as an Amazon FNSKU. Printed as Code 128 |
+
+An item's SKU is always one of its barcodes, whatever it is. A made-up code is only created when an item has no codes and its SKU is already another item's code.
 
 - **One code can never open two items.** All-digit codes are compared without leading zeros, because the same product comes back as 12 digits (UPC-A) from one decoder and 13 (EAN-13) from another.
 - A product code whose last digit does not match is almost always a misread. It is refused unless you confirm.

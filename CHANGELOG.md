@@ -7,6 +7,7 @@ All notable changes to `kempo-inventory-barcodes` are documented in this file.
 ### Changed
 
 - **Label text is a format.** The setting `label_format` (default `{name}`) builds the text above each barcode from the item's attributes, by their labels: `{attribute:brand}`, `{attribute:finish}`, `{attribute:manufacturer-code}`, plus `{name}`, `{sku}` and `{category}`. An attribute the item does not have is left out with its dash. The former `label_template` name is not used in a release.
+- **An item's SKU is always one of its barcodes**, whatever it is. A scanned code that is not a UPC/EAN (an Amazon FNSKU, say) is kept as a "scanned" code and printed in Code 128. A made-up code is only created when the SKU is another item's code.
 - **The Barcodes tab lists every category**, including ones with no items yet, so a category can be given its label format before it has items.
 - **Label formats are chosen per item and per category** (item, then category, then the site default). A format can fall back to another attribute or to text, `{attribute:finish|"No finish"}`. The site default is now `{name}`.
 - **Barcodes is a tab** on the inventory admin page (per-category formats) and on each item (its codes, label and format). Items get their tabs from the `inventory-item-tabs` location, on the admin item page and the site item page.
