@@ -44,7 +44,7 @@ export default class CategoryFormats extends ShadowComponent {
     this.data = data;
     this.drafts = Object.fromEntries(data.categories.map(category => [category.key, category.format]));
     this.previews = {};
-    await Promise.all(data.categories.map(category => this.preview(category, category.format)));
+    await Promise.all(data.categories.filter(category => category.sample).map(category => this.preview(category, category.format)));
   };
 
   preview = async (category, format) => {
@@ -76,7 +76,7 @@ export default class CategoryFormats extends ShadowComponent {
       <td>
         <input type="text" class="full m0" maxlength="200" aria-label=${`Label format for ${category.name}`} placeholder=${this.data.site}
           .value=${draft} @input=${event => { this.drafts = { ...this.drafts, [category.key]: event.target.value }; }}>
-        <small class="d-b tc-muted">Preview of ${category.sample.name}: ${preview ?? ''}</small>
+        <small class="d-b tc-muted">${category.sample ? html`Preview of ${category.sample.name}: ${preview ?? ''}` : 'No items in this category yet. Add one to see a preview.'}</small>
       </td>
       <td><button class="primary m0" ?disabled=${!changed} @click=${() => this.save(category)}>Save</button></td>
     </tr>`;
@@ -86,13 +86,13 @@ export default class CategoryFormats extends ShadowComponent {
     if(this.error) return html`<p class="tc-danger">${this.error}</p>`;
     if(!this.data) return html`<k-spinner></k-spinner>`;
     return html`
-      <p class="tc-muted mb">The text printed above each barcode. A category with no format of its own uses the site default: <code>${this.data.site}</code> (change it on the Settings tab). A format can use <code>{attribute:brand}</code>, <code>{attribute:finish|"text"}</code> and <code>{name}</code>, and an item can have its own format on its Barcodes tab.</p>
+      <p class="tc-muted mb">The label text printed above each barcode, per category. A category with no label format of its own uses the site default: <code>${this.data.site}</code> (change it on the Settings tab). A format can use <code>{attribute:brand}</code>, <code>{attribute:finish|"text"}</code> and <code>{name}</code>, and an item can have its own format on its Barcodes tab.</p>
       ${this.data.categories.length
         ? html`<table>
-            <thead><tr><th>Category</th><th>Format</th><th></th></tr></thead>
+            <thead><tr><th>Category</th><th>Label format</th><th></th></tr></thead>
             <tbody>${this.data.categories.map(category => this.renderRow(category))}</tbody>
           </table>`
-        : html`<p class="tc-muted">No items yet. A category appears here once an item is in it.</p>`}
+        : html`<p class="tc-muted">No categories yet. Create one on the Categories tab.</p>`}
     `;
   }
 }

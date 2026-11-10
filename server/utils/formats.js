@@ -1,6 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import db from 'kempo/server/db/index.js';
-import { getItems, getFields, getItem } from 'kempo-inventory/sdk';
+import { getItems, getFields, getItem, getCategories } from 'kempo-inventory/sdk';
 import { kempoInventoryBarcodeFormat } from '../db/schema.js';
 import { categoryKeyOf, formatProblem, labelTextOf, DEFAULT_TEMPLATE } from './labelText.js';
 import { getConfig } from './config.js';
@@ -60,31 +60,47 @@ export const saveFormat = async ({ scope, key, format }) => {
   }
 };
 
-/*
-  The categories the inventory has, each with how many items it holds, a sample item to preview with, and its own format.
-  Items with no category are grouped under ''.
-*/
-export const categoriesWithFormats = async () => {
-  const groups = new Map();
+/* One item in each category, to preview a format with. A category with no items has none. */
+const sampleItems = async () => {
+  const samples = new Map();
   for(let offset = 0; ; offset += 200){
     const [error, page] = await getItems({ limit: 200, offset });
     if(error) return [error, null];
     for(const item of page.items){
       const key = categoryKeyOf(item.category);
-      if(!groups.has(key)) groups.set(key, { key, name: String(item.category ?? '').trim(), count: 0, sample: { id: item.id, name: item.name } });
-      groups.get(key).count++;
+      if(!samples.has(key)) samples.set(key, { id: item.id, name: item.name });
     }
     if(offset + 200 >= page.total) break;
   }
-  const [storedError, stored] = await storedFormats();
-  if(storedError) return [storedError, null];
-  const categories = [...groups.values()]
-    .map(group => ({ key: group.key, name: group.name || 'Uncategorised', count: group.count, sample: group.sample, format: stored.category[group.key] ?? '' }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  return [null, categories];
+  return [null, samples];
 };
 
-/* The label a sample or a given item would print with the format the user is typing, for the preview. */
+/*
+  Every category the inventory has, including ones with no items yet (they are set up on the inventory's Categories
+  tab), each with its item count, a sample item to preview with, and its own format. Items with no category are
+  listed as ''.
+*/
+export const categoriesWithFormats = async () => {
+  const [categoriesError, inventory] = await getCategories({ includeEmpty: true });
+  if(categoriesError) return [categoriesError, null];
+  const [samplesError, samples] = await sampleItems();
+  if(samplesError) return [samplesError, null];
+  const [storedError, stored] = await storedFormats();
+  if(storedError) return [storedError, null];
+  const categories = inventory.categories.map(category => ({
+    key: category.key,
+    name: category.name,
+    count: category.count,
+    sample: samples.get(category.key) ?? null,
+    format: stored.category[category.key] ?? '',
+  }));
+  if(inventory.uncategorised || samples.has('')){
+    categories.push({ key: '', name: 'Uncategorised', count: inventory.uncategorised, sample: samples.get('') ?? null, format: '' });
+  }
+  return [null, categories.sort((a, b) => a.name.localeCompare(b.name))];
+};
+
+/* The label an unsaved format would print for an item, for the preview. */
 export const previewFor = async ({ format, itemId }) => {
   const problem = formatProblem(format);
   if(problem) return [{ code: 400, msg: problem }, null];
