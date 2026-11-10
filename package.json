@@ -1,6 +1,6 @@
 {
   "name": "kempo-inventory-barcodes",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Barcodes for kempo-inventory: several codes per item with one primary, temporary codes you can later merge with the real one, and print sheets of labels",
   "license": "MIT",
   "author": "Dustin Poissant <dustinpoissant@gmail.com>",
