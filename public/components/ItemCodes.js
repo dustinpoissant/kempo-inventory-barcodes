@@ -7,8 +7,7 @@ import '/kempo-ui/components/Spinner.js';
 import { getItem } from '/inventory/sdk.js';
 import { getAllCurrentUserPermissions } from '/kempo/sdk.js';
 import { scanBarcode } from '/inventory/components/BarcodeScanner.js';
-import { setItemFormat, previewFormat } from '/inventory-barcodes/sdk.js';
-import { getCodes, addCode, generateCode, setPrimary, removeCode, mergeItems, listSheets, createSheet, addEntry, sheetUrl } from '/inventory-barcodes/sdk.js';
+import { getCodes, addCode, generateCode, setPrimary, removeCode, mergeItems, listSheets, createSheet, addEntry, sheetUrl, setItemFormat, previewFormat } from '/inventory-barcodes/sdk.js';
 
 const KINDS = { upc: 'Product code', internal: 'Made up for this item', other: 'Scanned code' };
 
@@ -82,7 +81,7 @@ export default class ItemCodes extends ShadowComponent {
     Loading
   */
   get id(){
-    return this.itemId || new URLSearchParams(location.search).get('id');
+    return this.itemId || new URLSearchParams(location.search).get('id') || location.pathname.split('/').filter(Boolean).pop();
   }
 
   load = async () => {
@@ -247,33 +246,35 @@ export default class ItemCodes extends ShadowComponent {
     View
   */
   renderCode(code){
-    return html`<div class="b r p mb d-f" style="align-items: center;">
-      <div class="flex mr">
+    return html`<div class="b r px pt mb d-f" style="align-items: center;">
+      <div class="flex mb mrq">
         <strong class="ff-mono">${code.code}</strong>
         <small class="d-b tc-muted">${KINDS[code.kind] ?? KINDS.other}${code.isPrimary ? ' · Primary, printed by default' : ''}</small>
       </div>
       ${code.isPrimary ? html`<k-icon name="star_filled" aria-label="Primary"></k-icon>` : this.canEdit ? html`
-        <button class="mr" @click=${() => this.makePrimary(code)}><k-icon name="star"></k-icon> Make primary</button>
-        <button class="danger m0" aria-label=${`Remove ${code.code}`} @click=${() => this.remove(code)}><k-icon name="delete"></k-icon></button>` : ''}
+        <button class="mb mrq" @click=${() => this.makePrimary(code)}><k-icon name="star"></k-icon> Make primary</button>
+        <button class="danger mb mrq" aria-label=${`Remove ${code.code}`} @click=${() => this.remove(code)}><k-icon name="delete"></k-icon></button>` : ''}
     </div>`;
   }
 
   renderPrint(){
     if(this.sheets === null) return html`<p class="tc-muted">Sign in to put this item's label on a print sheet.</p>`;
     return html`
-      <h4 class="mt">Print its label</h4>
+      <h4>Print this label</h4>
       <div class="d-f" style="align-items: flex-end;">
-        <label class="mr">Sheet
+        <button class="primary mb mrq" ?disabled=${this.busy} @click=${this.addToSheet}><k-icon src="/inventory-barcodes/icons/print.svg"></k-icon> Add to print sheet</button>
+        ${this.sheetChoice && this.sheetChoice !== 'new' ? html`<a class="btn mb mrq" href=${sheetUrl(this.sheetChoice)}>Open the sheet</a>` : ''}
+      </div>
+      <div class="d-f" style="align-items: flex-end;">
+        <label class="mb mrq">Sheet
           <select class="m0" .value=${this.sheetChoice} @change=${event => { this.sheetChoice = event.target.value; }}>
             ${this.sheets.map(sheet => html`<option value=${sheet.id} ?selected=${sheet.id === this.sheetChoice}>${sheet.name} (${sheet.labels})</option>`)}
             <option value="new" ?selected=${this.sheetChoice === 'new'}>A new sheet</option>
           </select>
         </label>
-        <label class="mr">Copies
+        <label class="mb mrq">Copies
           <input type="number" min="1" max="500" step="1" class="m0" style="width: 6rem;" .value=${this.copies} @input=${event => { this.copies = event.target.value; }}>
         </label>
-        <button class="primary m0 mr" ?disabled=${this.busy} @click=${this.addToSheet}><k-icon src="/inventory-barcodes/icons/print.svg"></k-icon> Add to print sheet</button>
-        ${this.sheetChoice && this.sheetChoice !== 'new' ? html`<a class="btn m0" href=${sheetUrl(this.sheetChoice)}>Open the sheet</a>` : ''}
       </div>`;
   }
 
@@ -296,19 +297,19 @@ export default class ItemCodes extends ShadowComponent {
     const label = this.label;
     if(!label) return '';
     const inherited = label.source === 'category' ? 'the category format' : 'the site default';
-    const origin = label.source === 'item' ? 'this item format' : inherited;
-    const placeholder = label.format;
     return html`<h4>Label</h4>
-      <p class="mb"><strong id="labelText">${label.text || '(no text)'}</strong><br><small class="tc-muted">Printed above the barcode, from ${origin}.</small></p>
+      <p class="mb"><strong id="labelText">${label.text || '(no text)'}</strong><br><small class="tc-muted">Printed above the barcode, from ${label.source === 'item' ? 'this item format' : inherited}.</small></p>
       ${this.canEdit ? html`
         <label class="d-b mbq" for="itemFormat">Format for this item
           <small class="d-b tc-muted">Placeholders: {name}, {sku}, {category}, {attribute:brand}. Use {attribute:brand|"text"} to fall back to text when it is empty. Leave empty to use ${inherited}.</small>
         </label>
-        <div class="d-f mb">
-          <input id="itemFormat" type="text" class="flex m0 mr" maxlength="200" placeholder=${placeholder} .value=${this.formatDraft}
-            @input=${event => { this.formatDraft = event.target.value; }}>
-          <button class="m0 mr" @click=${this.showPreview}>Preview</button>
-          <button class="primary m0" @click=${this.saveFormat}>Save format</button>
+        <div class="d-f">
+          <div class="flex mb mrq" style="min-width: 12rem;">
+            <input id="itemFormat" type="text" class="full m0" maxlength="200" placeholder=${label.format} .value=${this.formatDraft}
+              @input=${event => { this.formatDraft = event.target.value; }}>
+          </div>
+          <button class="mb mrq" @click=${this.showPreview}>Preview</button>
+          <button class="primary mb mrq" @click=${this.saveFormat}>Save format</button>
         </div>
         ${this.preview ? html`<p class="tc-muted">${this.preview.error ? this.preview.error : html`Would print: <strong>${this.preview.text || '(no text)'}</strong>`}</p>` : ''}` : ''}`;
   }
@@ -318,7 +319,7 @@ export default class ItemCodes extends ShadowComponent {
     if(!this.item) return html`<k-spinner></k-spinner>`;
     return html`
       ${this.showName ? html`<h2 class="mb0">${this.item.name}</h2><p class="tc-muted">${this.item.sku}</p>` : ''}
-      ${this.renderLabel()}
+      ${this.renderPrint()}
       <h4>Barcodes</h4>
       ${this.codes.length
         ? this.codes.map(code => this.renderCode(code))
@@ -327,18 +328,18 @@ export default class ItemCodes extends ShadowComponent {
         <label class="d-b mbq" for="newCode">Add a barcode
           <small class="d-b tc-muted">Scan or type the number from the real package. Codes already on bins keep working, so you can add the real one later and make it the primary.</small>
         </label>
-        <div class="d-f mb">
-          <div class="flex mr" style="min-width: 12rem;">
+        <div class="d-f">
+          <div class="flex mb mrq" style="min-width: 12rem;">
             <input id="newCode" type="text" class="full m0" maxlength="100" placeholder="Barcode number" .value=${this.newCode}
               @input=${event => { this.newCode = event.target.value; }} @keydown=${event => event.key === 'Enter' && this.newCode.trim() && this.addNew(this.newCode)}>
           </div>
-          <button class="m0 mr" ?disabled=${this.busy} @click=${this.scan}><k-icon src="/inventory-barcodes/icons/barcode_scanner.svg"></k-icon> Scan</button>
-          <button class="primary m0" ?disabled=${this.busy || !this.newCode.trim()} @click=${() => this.addNew(this.newCode)}><k-icon name="add"></k-icon> Add barcode</button>
+          <button class="mb mrq" ?disabled=${this.busy} @click=${this.scan}><k-icon src="/inventory-barcodes/icons/barcode_scanner.svg"></k-icon> Scan</button>
+          <button class="primary mb mrq" ?disabled=${this.busy || !this.newCode.trim()} @click=${() => this.addNew(this.newCode)}><k-icon name="add"></k-icon> Add barcode</button>
         </div>
         ${this.codes.some(code => code.kind === 'internal' || code.kind === 'upc') ? '' : html`
           <p class="tc-muted mbh">No barcode on the package yet? Make up a temporary one to label it now, and add the real one when you have it.</p>
-          <button class="mb" ?disabled=${this.busy} @click=${this.generate}>Make a temporary code</button>`}` : ''}
-      ${this.renderPrint()}
+          <button class="mb mrq" ?disabled=${this.busy} @click=${this.generate}>Make a temporary code</button>`}` : ''}
+      ${this.renderLabel()}
     `;
   }
 }
