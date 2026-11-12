@@ -1,23 +1,6 @@
-const BASE = '/inventory-barcodes/api';
+import { request } from '/kempo/fetch.js';
 
-const request = async (method, path, data) => {
-  const options = { method, headers: {} };
-  if(data !== undefined && method !== 'GET'){
-    options.headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(data);
-  }
-  try {
-    const response = await fetch(path, options);
-    const json = await response.json().catch(() => ({}));
-    if(!response.ok){
-      const { error, ...extra } = json;
-      return [{ code: response.status, msg: error || 'An error occurred', ...extra }, null];
-    }
-    return [null, json];
-  } catch {
-    return [{ code: 503, msg: 'Network error' }, null];
-  }
-};
+const BASE = '/inventory-barcodes/api';
 
 const enc = encodeURIComponent;
 
